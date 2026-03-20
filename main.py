@@ -6,10 +6,9 @@ import requests
 import os
 import random
 
-# ===================== 固定配置 =====================
+# ===================== 基础配置（已删除 START_DATE） =====================
 today = datetime.now()
-# 读取 GitHub Secrets 环境变量（无需修改代码）
-
+# 读取环境变量
 city = os.environ['CITY']
 birthday = os.environ['BIRTHDAY']
 
@@ -18,33 +17,29 @@ app_secret = os.environ["APP_SECRET"]
 
 user_id = os.environ["USER_ID"]
 template_id = os.environ["TEMPLATE_ID"]
-# 和风天气KEY（新增，免费申请）
 weather_key = os.environ["WEATHER_KEY"]
 
-# ===================== 【修复】可用的天气接口 =====================
+# ===================== 天气接口（修复可用） =====================
 def get_weather():
-    # 替换为和风天气官方免费接口（稳定可用）
     url = f"https://devapi.qweather.com/v7/weather/now?location={city}&key={weather_key}"
     try:
         res = requests.get(url, timeout=10).json()
         if res["code"] == "200":
-            wea = res["now"]["text"]       # 天气状况
-            temp = int(res["now"]["temp"]) # 温度（整数）
+            wea = res["now"]["text"]
+            temp = int(res["now"]["temp"])
             return wea, temp
     except:
         pass
-    # 接口异常时返回默认值
     return "晴", 20
 
-# ===================== 以下功能完全保留，无需修改 =====================
-
-
+# ===================== 生日倒计时（保留） =====================
 def get_birthday():
     next = datetime.strptime(str(date.today().year) + "-" + birthday, "%Y-%m-%d")
     if next < datetime.now():
         next = next.replace(year=next.year + 1)
     return (next - today).days
 
+# ===================== 随机情话（保留） =====================
 def get_words():
     try:
         words = requests.get("https://api.shadiao.pro/chp", timeout=5)
@@ -54,18 +49,19 @@ def get_words():
         pass
     return "宝贝，我爱你❤️"
 
+# ===================== 随机颜色 =====================
 def get_random_color():
     return "#%06x" % random.randint(0, 0xFFFFFF)
 
-# ===================== 发送消息（原逻辑不变） =====================
+# ===================== 发送微信消息 =====================
 client = WeChatClient(app_id, app_secret)
 wm = WeChatMessage(client)
 wea, temperature = get_weather()
 
+# =============== 关键：删除了 love_days 字段 ===============
 data = {
     "weather":{"value":wea},
     "temperature":{"value":temperature},
-    "love_days":{"value":get_count()},
     "birthday_left":{"value":get_birthday()},
     "words":{"value":get_words(), "color":get_random_color()}
 }
