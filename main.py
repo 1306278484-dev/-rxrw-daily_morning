@@ -9,7 +9,7 @@ import random
 # ===================== 固定配置 =====================
 today = datetime.now()
 # 读取 GitHub Secrets 环境变量（无需修改代码）
-start_date = os.environ['START_DATE']
+
 city = os.environ['CITY']
 birthday = os.environ['BIRTHDAY']
 
