@@ -72,13 +72,10 @@ def get_random_color():
     return "#%06x" % random.randint(0, 0xFFFFFF)
 
 # 自动判断当前提醒类型
+
 def get_remind_info():
-    h = beijing_now.hour
-    for k, v in REMIND_CONFIG.items():
-        s, e = v["time_range"]
-        if (s < e and s <= h < e) or (s > e and (h >= s or h < e)):
-            return v
-    return {"first_text":"💌 王跃跃专属小提醒","keyword1":"日常问候"}
+    # 可选："起床" / "吃饭" / "洗澡" / "睡觉"
+    return REMIND_CONFIG["吃饭"]  # 改成你要立即发送的提醒类型
 
 # 发送微信模板消息（双人循环发送）
 client = WeChatClient(app_id, app_secret)
