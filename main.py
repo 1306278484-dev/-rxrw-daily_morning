@@ -5,12 +5,12 @@ import requests
 import os
 import random
 
-# 自动切换北京时间
+# 自动切换北京时间，避免时区错误
 utc_now = datetime.utcnow()
 beijing_now = utc_now + timedelta(hours=8)
 today = beijing_now.date()
 
-# 配置读取
+# 读取GitHub环境变量（无需修改）
 city = os.environ['CITY']
 birthday = os.environ['BIRTHDAY']
 app_id = os.environ["APP_ID"]
@@ -19,7 +19,7 @@ user_id_list = [os.environ["USER_ID"], os.environ["USER_ID_2"]]
 template_id = os.environ["TEMPLATE_ID"]
 weather_key = os.environ["WEATHER_KEY"]
 
-# 4个提醒配置（新增吃饭）
+# 4个提醒配置（起床/吃饭/洗澡/睡觉，文案可自定义）
 REMIND_CONFIG = {
     "起床": {
         "time_range": (7, 9),
@@ -27,7 +27,7 @@ REMIND_CONFIG = {
         "keyword1": "起床"
     },
     "吃饭": {
-        "time_range": (11, 13),  # 11-13点触发（12点吃饭）
+        "time_range": (11, 13),
         "first_text": "干饭时间到🍚 宝贝记得好好吃饭，不许饿肚子！",
         "keyword1": "吃饭"
     },
@@ -43,7 +43,7 @@ REMIND_CONFIG = {
     }
 }
 
-# 天气接口
+# 稳定天气接口（和风天气官方）
 def get_weather():
     url = f"https://devapi.qweather.com/v7/weather/now?location={city}&key={weather_key}"
     try:
@@ -53,13 +53,13 @@ def get_weather():
     except: pass
     return "天气获取成功"
 
-# 生日倒计时
+# 生日倒计时（已改为王跃跃专属）
 def get_birthday():
     birth = datetime.strptime(f"{today.year}-{birthday}", "%Y-%m-%d")
     if birth < beijing_now: birth = birth.replace(year=birth.year+1)
     return (birth - beijing_now).days
 
-# 随机情话
+# 随机土味情话（接口异常自动兜底）
 def get_words():
     try:
         w = requests.get("https://api.shadiao.pro/chp", timeout=5)
@@ -67,20 +67,20 @@ def get_words():
     except: pass
     return "宝贝，我爱你❤️"
 
-# 随机颜色
+# 随机颜色（让消息更好看）
 def get_random_color():
     return "#%06x" % random.randint(0, 0xFFFFFF)
 
-# 自动判断提醒
+# 自动判断当前提醒类型
 def get_remind_info():
     h = beijing_now.hour
     for k, v in REMIND_CONFIG.items():
         s, e = v["time_range"]
         if (s < e and s <= h < e) or (s > e and (h >= s or h < e)):
             return v
-    return {"first_text":"💌 专属小提醒","keyword1":"日常问候"}
+    return {"first_text":"💌 王跃跃专属小提醒","keyword1":"日常问候"}
 
-# 发送消息
+# 发送微信模板消息（双人循环发送）
 client = WeChatClient(app_id, app_secret)
 wm = WeChatMessage(client)
 remind = get_remind_info()
@@ -88,10 +88,10 @@ data = {
     "first": {"value": remind["first_text"], "color": get_random_color()},
     "keyword1": {"value": remind["keyword1"], "color": "#FF6347"},
     "keyword2": {"value": get_weather(), "color": "#1E90FF"},
-    "remark": {"value": f"距离生日还有{get_birthday()}天\n{get_words()}", "color": get_random_color()}
+    "remark": {"value": f"距离王跃跃生日还有{get_birthday()}天\n{get_words()}", "color": get_random_color()}
 }
 
-# 双人发送
+# 给你和TA同时发送
 for uid in user_id_list:
     res = wm.send_template(uid, template_id, data)
     print(f"发送成功：{remind['keyword1']} | {res}")
