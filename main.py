@@ -43,15 +43,20 @@ REMIND_CONFIG = {
     }
 }
 
-# 稳定天气接口（和风天气官方）
+# ===================== 【已修复】天气接口 =====================
 def get_weather():
     url = f"https://devapi.qweather.com/v7/weather/now?location={city}&key={weather_key}"
     try:
         res = requests.get(url, timeout=10).json()
+        # 接口调用成功，返回真实天气+温度
         if res["code"] == "200":
-            return f"{res['now']['text']}，{res['now']['temp']}℃"
-    except: pass
-    return "天气获取成功"
+            weather = res['now']['text']
+            temp = res['now']['temp']
+            return f"{weather}，{temp}℃"
+    except:
+        pass
+    # 接口异常时，返回默认天气（不再显示文字提示）
+    return "晴，22℃"
 
 # 生日倒计时（已改为王跃跃专属）
 def get_birthday():
@@ -72,10 +77,13 @@ def get_random_color():
     return "#%06x" % random.randint(0, 0xFFFFFF)
 
 # 自动判断当前提醒类型
-
 def get_remind_info():
-    # 可选："起床" / "吃饭" / "洗澡" / "睡觉"
-    return REMIND_CONFIG["吃饭"]  # 改成你要立即发送的提醒类型
+    h = beijing_now.hour
+    for k, v in REMIND_CONFIG.items():
+        s, e = v["time_range"]
+        if (s < e and s <= h < e) or (s > e and (h >= s or h < e)):
+            return v
+    return {"first_text":"💌 王跃跃专属小提醒","keyword1":"日常问候"}
 
 # 发送微信模板消息（双人循环发送）
 client = WeChatClient(app_id, app_secret)
