@@ -1,33 +1,30 @@
-name: morning
+name: 情侣专属定时提醒
 on:
   schedule:
-  - cron:  '0 0 * * *'
+    - cron: '0 0 * * *'   # 北京时间 8:00 起床
+    - cron: '0 4 * * *'   # 北京时间 12:00 吃饭（新增！）
+    - cron: '0 14 * * *'  # 北京时间 22:00 洗澡
+    - cron: '0 16 * * *'  # 北京时间 00:00 睡觉
   workflow_dispatch:
 
 jobs:
-  send_message:
+  send_remind:
     runs-on: ubuntu-latest
-    name: send morning to your girlfriend
-
     steps:
-    - name: checkout
-      uses: actions/checkout@v3
-      with:
-        ref: master
-
-    - name: sender
-      uses: actions/setup-python@v2
-      with:
-        python-version: '3.x'
-        architecture: 'x64'
-    - run: pip install -r ./requirements.txt && python ./main.py
-
-    env:
-      APP_ID: ${{ secrets.APP_ID }}
-      APP_SECRET: ${{ secrets.APP_SECRET }}
-      TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
-      USER_ID: ${{ secrets.USER_ID }}
-      START_DATE: ${{ secrets.START_DATE }}
-      BIRTHDAY: ${{ secrets.BIRTHDAY }}
-      CITY: ${{ secrets.CITY }}
-      WEATHER_KEY: ${{ secrets.WEATHER_KEY }} 
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.10"}
+      - name: Install dependencies
+        run: |
+          pip install -r ./requirements.txt
+      - name: Run main.py
+        env:
+          APP_ID: ${{ secrets.APP_ID }}
+          APP_SECRET: ${{ secrets.APP_SECRET }}
+          USER_ID: ${{ secrets.USER_ID }}
+          USER_ID_2: ${{ secrets.USER_ID_2 }}
+          TEMPLATE_ID: ${{ secrets.TEMPLATE_ID }}
+          CITY: ${{ secrets.CITY }}
+          BIRTHDAY: ${{ secrets.BIRTHDAY }}
+          WEATHER_KEY: ${{ secrets.WEATHER_KEY }}
+        run: python ./main.py
